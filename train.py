@@ -1,3 +1,7 @@
+'''
+https://github.com/fungtion/DANN
+'''
+
 from __future__ import print_function
 
 import argparse
@@ -42,7 +46,8 @@ target_path = os.path.join('.', 'data', args.target)
 image_size = 28
 img_transform = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor(), transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
 
-source_dataset = datasets.MNIST(root=source_path, train=True, transform=img_transform)
+img_transform_mnist = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor(), transforms.Lambda(lambda x: x.repeat(3, 1, 1)), transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
+source_dataset = datasets.MNIST(root=source_path, train=True, transform=img_transform_mnist)
 source_loader = torch.utils.data.DataLoader(dataset=source_dataset, batch_size=batch_size, shuffle=True, num_workers=args.workers)
 
 train_list = os.path.join(target_image_root, 'mnist_m_train_labels.txt')

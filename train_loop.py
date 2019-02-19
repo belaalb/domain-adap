@@ -72,9 +72,6 @@ class TrainLoop(object):
 		x_source, y_source = batch_source
 		source_labels = torch.zeros(y_source.size())
 
-		#TODO: 3 channels 
-		input_img = torch.FloatTensor(batch_size, 3, image_size, image_size)
-
 		x_target, _ = batch_target
 		target_labels = torch.zeros(y_target.size())
 

@@ -1,5 +1,20 @@
 import torch.nn as nn
-from utils import ReverseLayerF
+from torch.autograd import Function
+
+class ReverseLayer(Function):
+
+    @staticmethod
+    def forward(ctx, x, alpha):
+        ctx.alpha = alpha
+
+        return x
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        output = grad_output.neg() * ctx.alpha
+
+        return output, None
+
 
 class CNNModel(nn.Module):
 
@@ -38,7 +53,7 @@ class CNNModel(nn.Module):
 		input_data = input_data.expand(input_data.data.shape[0], 3, 28, 28)
 		feature = self.feature(input_data)
 		feature = feature.view(-1, 50 * 4 * 4)
-		reverse_feature = ReverseLayerF.apply(feature, alpha)
+		reverse_feature = ReverseLayer.apply(feature, alpha)
 		class_output = self.class_classifier(feature)
 		domain_output = self.domain_classifier(reverse_feature)
 
