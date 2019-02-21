@@ -50,6 +50,7 @@ class TrainLoop(object):
 
 				batch_source = source_iter.next()
 				batch_target = target_iter.next()
+
 				cur_loss += self.train_step(batch_source, batch_target)
 				i += 1
 

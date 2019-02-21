@@ -4,6 +4,7 @@ from torch.autograd import Variable
 from torchvision import transforms
 from data_loader import Loader
 from torchvision import datasets
+import models as models_
 
 
 def test(dataset_name, epoch, checkpoint_path, cuda):
@@ -19,16 +20,17 @@ def test(dataset_name, epoch, checkpoint_path, cuda):
 	if dataset_name == 'mnist_m':
 		test_list = os.path.join(image_root, 'mnist_m_test_labels.txt')
 		img_transform = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor(), transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
-		dataset = Loader(data_root=os.path.join(image_root, 'mnist_m_test'),data_list=test_list, transform=img_transform)
+		dataloader = Loader(data_root=os.path.join(image_root, 'mnist_m_test'),data_list=test_list, transform=img_transform)
 	else:
 		img_transform_mnist = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor(), transforms.Lambda(lambda x: x.repeat(3, 1, 1)), transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
 		dataset = datasets.MNIST(root=image_root, train=False, transform=img_transform_mnist)
 		dataloader = torch.utils.data.DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False, num_workers=8)
 
+	model = models_.CNNModel()
 
-	model = torch.load(os.path.join(checkpoint_path, 'cp_{}ep'.format(epoch)) + '.pt')
+	ckpt = torch.load(os.path.join(checkpoint_path, 'cp_{}ep'.format(epoch) + '.pt'))
+	model.load_state_dict(ckpt['model_state'])
 	model = model.eval()
-
 	if cuda:
 	  model = model.cuda()
 
@@ -42,7 +44,8 @@ def test(dataset_name, epoch, checkpoint_path, cuda):
 	while i < len_dataloader:
 
 		# test model using target data
-		x, y = data_target_iter.next()
+		batch = data_target_iter.next()
+		x, y = batch
 
 		if cuda:
 			x = x.cuda()
