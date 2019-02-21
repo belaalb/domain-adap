@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 class TrainLoop(object):
 
-	def __init__(self, model, optimizer, source_loader, target_loader, checkpoint_path=None, checkpoint_epoch=None, cuda=True):
+	def __init__(self, model, optimizer, source_loader, target_loader, checkpoint_path=None, checkpoint_epoch=None, cuda=True, target_name='mnist_m'):
 		if checkpoint_path is None:
 			# Save to current directory
 			self.checkpoint_path = os.getcwd()
@@ -30,6 +30,7 @@ class TrainLoop(object):
 		self.history = {'loss': []}
 		self.total_iters = 0
 		self.cur_epoch = 0
+		self.target_name = target_name
 
 	def train(self, n_epochs=1, save_every=1):
 
@@ -51,8 +52,6 @@ class TrainLoop(object):
 				batch_target = target_iter.next()
 				cur_loss += self.train_step(batch_source, batch_target)
 				i += 1
-			
-			self.cur_epoch += 1
 
 			if self.cur_epoch % save_every == 0:
 				self.checkpointing()
@@ -60,6 +59,11 @@ class TrainLoop(object):
 			self.history['loss'].append(cur_loss/i)
 
 			print('Current loss: {}.'.format(cur_loss/i))
+
+			if self.cur_epoch % 10 == 0:
+				test(self.target_name, self.epoch, self.checkpoint_path, self.cuda)
+
+			self.cur_epoch += 1
 
 		# saving final models
 		print('Saving final model...')

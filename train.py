@@ -47,7 +47,7 @@ image_size = 28
 img_transform = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor(), transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
 
 img_transform_mnist = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor(), transforms.Lambda(lambda x: x.repeat(3, 1, 1)), transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
-source_dataset = datasets.MNIST(root=source_path, train=True, transform=img_transform_mnist)
+source_dataset = datasets.MNIST(root=source_path, download=True, train=True, transform=img_transform_mnist)
 source_loader = torch.utils.data.DataLoader(dataset=source_dataset, batch_size=batch_size, shuffle=True, num_workers=args.workers)
 
 train_list = os.path.join(target_image_root, 'mnist_m_train_labels.txt')
@@ -61,7 +61,7 @@ if args.cuda:
 	model = model.cuda()
 	torch.backends.cudnn.benchmark=True
 
-trainer = TrainLoop(model, optimizer, source_loader, target_loader, checkpoint_path=args.checkpoint_path, checkpoint_epoch=args.checkpoint_epoch, cuda=args.cuda)
+trainer = TrainLoop(model, optimizer, source_loader, target_loader, checkpoint_path=args.checkpoint_path, checkpoint_epoch=args.checkpoint_epoch, cuda=args.cuda, target_name = args.target)
 
 print('Cuda Mode: {}'.format(args.cuda))
 print('Batch size: {}'.format(args.batch_size))

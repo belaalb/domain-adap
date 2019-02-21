@@ -5,3 +5,10 @@
 *.pdf
 *.xls
 *.mat
+*.pt
+*.gz
+data/mnist/raw/t10k-images-idx3-ubyte
+data/mnist/raw/t10k-labels-idx1-ubyte
+data/mnist/raw/train-images-idx3-ubyte
+data/mnist/raw/train-labels-idx1-ubyte
+
