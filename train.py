@@ -48,14 +48,14 @@ img_transform = transforms.Compose([transforms.Resize(image_size), transforms.To
 
 img_transform_mnist = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor(), transforms.Lambda(lambda x: x.repeat(3, 1, 1)), transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
 source_dataset = datasets.MNIST(root=source_path, download=True, train=True, transform=img_transform_mnist)
-source_loader = torch.utils.data.DataLoader(dataset=source_dataset, batch_size=batch_size, shuffle=True, num_workers=args.workers)
+source_loader = torch.utils.data.DataLoader(dataset=source_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.workers)
 
-train_list = os.path.join(target_image_root, 'mnist_m_train_labels.txt')
+train_list = os.path.join(target_path, 'mnist_m_train_labels.txt')
 target_dataset = Loader(data_root=os.path.join(target_path, 'mnist_m_train'), data_list=train_list, transform=img_transform)
-target_loader = torch.utils.data.DataLoader(dataset=target_dataset, batch_size=batch_size, shuffle=True, num_workers=args.workers)
+target_loader = torch.utils.data.DataLoader(dataset=target_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.workers)
 
 model = models_.CNNModel()
-optimizer = optim.Adam(model.parameters(), lr=lr)
+optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
 if args.cuda:
 	model = model.cuda()

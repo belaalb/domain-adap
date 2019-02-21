@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from scipy.optimize import minimize
 from torch.autograd import Variable
 from tqdm import tqdm
+from test import test
 
 
 class TrainLoop(object):
@@ -28,22 +29,21 @@ class TrainLoop(object):
 		self.source_loader = source_loader
 		self.target_loader = target_loader
 		self.history = {'loss': []}
-		self.total_iters = 0
 		self.cur_epoch = 0
 		self.target_name = target_name
 
 	def train(self, n_epochs=1, save_every=1):
 
-		len_dataloader = min(len(source_loader), len(target_loader))
-		source_iter = tqdm(iter(source_loader))
-		target_iter = iter(target_loader)
+		len_dataloader = min(len(self.source_loader), len(self.target_loader))
+		source_iter = iter(self.source_loader)
+		target_iter = iter(self.target_loader)
 
 		while self.cur_epoch < n_epochs:
 
 			print('Epoch {}/{}'.format(self.cur_epoch + 1, n_epochs))
 
 			i = 0
-			cur_loss
+			cur_loss = 0
 			while i < len_dataloader:
 				p = float(i + self.cur_epoch * len_dataloader) / n_epochs / len_dataloader
 				self.alpha = 2. / (1. + np.exp(-10 * p)) - 1
@@ -61,7 +61,7 @@ class TrainLoop(object):
 			print('Current loss: {}.'.format(cur_loss/i))
 
 			if self.cur_epoch % 10 == 0:
-				test(self.target_name, self.epoch, self.checkpoint_path, self.cuda)
+				test(self.target_name, self.cur_epoch, self.checkpoint_path, self.cuda_mode)
 
 			self.cur_epoch += 1
 
@@ -74,10 +74,10 @@ class TrainLoop(object):
 		self.model.train()
 
 		x_source, y_source = batch_source
-		source_labels = torch.zeros(y_source.size())
+		source_labels = torch.zeros(y_source.size(), dtype=torch.long)
 
 		x_target, _ = batch_target
-		target_labels = torch.zeros(y_target.size())
+		target_labels = torch.zeros(x_target.size(0), dtype=torch.long)
 
 		if self.cuda_mode:
 			x_source = x_source.cuda()
@@ -93,7 +93,7 @@ class TrainLoop(object):
 			target_labels = target_labels.cuda()
 
 		_, domain_out = self.model.forward(x_target, self.alpha)		
-		loss_target = torch.nn.NLLLoss()(domain_out, y_target)
+		loss_target = torch.nn.NLLLoss()(domain_out, target_labels)
 
 		loss = loss_class + loss_source + loss_target 
 
@@ -108,9 +108,7 @@ class TrainLoop(object):
 		print('Checkpointing...')
 		ckpt = {'model_state': self.model.state_dict(),
 				'optimizer_state': self.optimizer.state_dict(),
-				'scheduler_state': self.scheduler.state_dict(),
 				'history': self.history,
-				'total_iters': self.total_iters,
 				'cur_epoch': self.cur_epoch}
 		torch.save(ckpt, self.save_epoch.format(self.cur_epoch))
 
@@ -125,10 +123,8 @@ class TrainLoop(object):
 			# Load optimizer state
 			self.optimizer.load_state_dict(ckpt['optimizer_state'])
 			# Load scheduler state
-			self.scheduler.load_state_dict(ckpt['scheduler_state'])
 			# Load history
 			self.history = ckpt['history']
-			self.total_iters = ckpt['total_iters']
 			self.cur_epoch = ckpt['cur_epoch']
 
 		else:

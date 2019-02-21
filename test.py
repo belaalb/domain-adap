@@ -26,7 +26,7 @@ def test(dataset_name, epoch, checkpoint_path, cuda):
 		dataloader = torch.utils.data.DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False, num_workers=8)
 
 
-	model = torch.load(os.path.join(checkpoint_path, 'cp_{}ep'.format(epoch)) + '.pt'))
+	model = torch.load(os.path.join(checkpoint_path, 'cp_{}ep'.format(epoch)) + '.pt')
 	model = model.eval()
 
 	if cuda:
@@ -55,6 +55,6 @@ def test(dataset_name, epoch, checkpoint_path, cuda):
 
 		i += 1
 
-    accu = n_correct * 1.0 / n_total
+	accu = n_correct * 1.0 / n_total
 
-    print('Epoch:{}, accuracy of the {}, dataset: {}.'.format(epoch, dataset_name, accu))
+	print('Epoch:{}, accuracy of the {}, dataset: {}.'.format(epoch, dataset_name, accu))
