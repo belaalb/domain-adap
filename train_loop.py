@@ -48,8 +48,14 @@ class TrainLoop(object):
 				p = float(i + self.cur_epoch * len_dataloader) / n_epochs / len_dataloader
 				self.alpha = 2. / (1. + np.exp(-10 * p)) - 1
 
-				batch_source = source_iter.next()
-				batch_target = target_iter.next()
+				try:
+					batch_source = source_iter.next()
+					batch_target = target_iter.next()
+				except StopIteration:
+					source_iter = iter(self.source_loader)
+					target_iter = iter(self.target_loader)
+					batch_source = source_iter.next()
+					batch_target = target_iter.next()
 
 				cur_loss += self.train_step(batch_source, batch_target)
 				i += 1
