@@ -34,11 +34,11 @@ class TrainLoop(object):
 
 	def train(self, n_epochs=1, save_every=1):
 
-		len_dataloader = min(len(self.source_loader), len(self.target_loader))
-		source_iter = iter(self.source_loader)
-		target_iter = iter(self.target_loader)
-
 		while self.cur_epoch < n_epochs:
+
+			len_dataloader = min(len(self.source_loader), len(self.target_loader))
+			source_iter = iter(self.source_loader)
+			target_iter = iter(self.target_loader)
 
 			print('Epoch {}/{}'.format(self.cur_epoch + 1, n_epochs))
 
@@ -61,7 +61,7 @@ class TrainLoop(object):
 
 			print('Current loss: {}.'.format(cur_loss/i))
 
-			if self.cur_epoch % 10 == 0:
+			if self.cur_epoch % save_every == 0:
 				test(self.target_name, self.cur_epoch, self.checkpoint_path, self.cuda_mode)
 
 			self.cur_epoch += 1

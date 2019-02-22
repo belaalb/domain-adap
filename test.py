@@ -20,11 +20,12 @@ def test(dataset_name, epoch, checkpoint_path, cuda):
 	if dataset_name == 'mnist_m':
 		test_list = os.path.join(image_root, 'mnist_m_test_labels.txt')
 		img_transform = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor(), transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
-		dataloader = Loader(data_root=os.path.join(image_root, 'mnist_m_test'),data_list=test_list, transform=img_transform)
+		dataset = Loader(data_root=os.path.join(image_root, 'mnist_m_test'),data_list=test_list, transform=img_transform)
+		dataloader = torch.utils.data.DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False, num_workers=4)
 	else:
 		img_transform_mnist = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor(), transforms.Lambda(lambda x: x.repeat(3, 1, 1)), transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
 		dataset = datasets.MNIST(root=image_root, train=False, transform=img_transform_mnist)
-		dataloader = torch.utils.data.DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False, num_workers=8)
+		dataloader = torch.utils.data.DataLoader(dataset=dataset, batch_size=batch_size, shuffle=False, num_workers=4)
 
 	model = models_.CNNModel()
 
@@ -58,6 +59,6 @@ def test(dataset_name, epoch, checkpoint_path, cuda):
 
 		i += 1
 
-	accu = n_correct * 1.0 / n_total
+	accu = n_correct.item() * 1.0 / n_total
 
-	print('Epoch:{}, accuracy of the {}, dataset: {}.'.format(epoch, dataset_name, accu))
+	print('Epoch:{}, accuracy of the {} dataset: {}.'.format(epoch+1, dataset_name, accu))
