@@ -37,6 +37,7 @@ class TrainLoop(object):
 		while self.cur_epoch < n_epochs:
 
 			len_dataloader = min(len(self.source_loader), len(self.target_loader))
+
 			source_iter = iter(self.source_loader)
 			target_iter = iter(self.target_loader)
 
@@ -51,7 +52,7 @@ class TrainLoop(object):
 				try:
 					batch_source = source_iter.next()
 					batch_target = target_iter.next()
-				except StopIteration:
+				except:
 					source_iter = iter(self.source_loader)
 					target_iter = iter(self.target_loader)
 					batch_source = source_iter.next()
@@ -84,7 +85,7 @@ class TrainLoop(object):
 		source_labels = torch.zeros(y_source.size(), dtype=torch.long)
 
 		x_target, _ = batch_target
-		target_labels = torch.zeros(x_target.size(0), dtype=torch.long)
+		target_labels = torch.ones(x_target.size(0), dtype=torch.long)
 
 		if self.cuda_mode:
 			x_source = x_source.cuda()
