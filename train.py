@@ -20,8 +20,8 @@ from data_loader import Loader
 
 parser = argparse.ArgumentParser(description='Reproducing DANN')
 parser.add_argument('--batch-size', type=int, default=128, metavar='N', help='input batch size for training (default: 64)')
-parser.add_argument('--epochs', type=int, default=100, metavar='N', help='number of epochs to train (default: 50)')
-parser.add_argument('--lr', type=float, default=0.001, metavar='LR', help='learning rate (default: 0.0002)')
+parser.add_argument('--epochs', type=int, default=1000, metavar='N', help='number of epochs to train (default: 50)')
+parser.add_argument('--lr', type=float, default=0.01, metavar='LR', help='learning rate (default: 0.0002)')
 parser.add_argument('--checkpoint-epoch', type=int, default=None, metavar='N', help='epoch to load for checkpointing. If None, training starts from scratch')
 parser.add_argument('--checkpoint-path', type=str, default=None, metavar='Path', help='Path for checkpointing')
 parser.add_argument('--source', choices=['mnist', 'mnist_m'], default='mnist', help='Path to source data')
@@ -55,7 +55,7 @@ target_dataset = Loader(data_root=os.path.join(target_path, 'mnist_m_train'), da
 target_loader = torch.utils.data.DataLoader(dataset=target_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.workers)
 
 model = models_.CNNModel()
-optimizer = optim.Adam(model.parameters(), lr=args.lr)
+optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
 
 if args.cuda:
 	model = model.cuda()
