@@ -108,6 +108,8 @@ class TrainLoop(object):
 		loss.backward()
 		self.optimizer.step()
 
+		self.print_grad_norms()
+
 		return loss.item() 
 
 
@@ -137,6 +139,12 @@ class TrainLoop(object):
 
 		else:
 			print('No checkpoint found at: {}'.format(ckpt))
+
+	def print_grad_norms(self):
+		norm = 0.0
+		for params in list(filter(lambda p: p.grad is not None, self.model.parameters())):
+			norm += params.grad.norm(2).item()
+		print('Sum of grads norms: {}'.format(norm))
 
 
 
