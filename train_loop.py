@@ -26,8 +26,9 @@ class TrainLoop(object):
 		self.cuda_mode = cuda
 		self.model = model
 		self.optimizer = optimizer
-		self.scheduler = torch.optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.lambda_adap)
-		self.lambda_adap = 1. / (1. + 10 * p) ** 0.75
+		self.p = 0
+		#self.lambda_adap = lambda p: 1. / (1. + 10 * p) ** 0.75 
+		self.scheduler = torch.optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=self.update_lr)
 		self.source_loader = source_loader
 		self.target_loader = target_loader
 		self.history = {'loss': []}
@@ -48,8 +49,10 @@ class TrainLoop(object):
 			i = 0
 			cur_loss = 0
 			while i < len_dataloader:
-				p = float(i + self.cur_epoch * len_dataloader) / (n_epochs*len_dataloader)
-				self.lambda_ = 2. / (1. + np.exp(-10 * p)) - 1
+				self.p = float(i + self.cur_epoch * len_dataloader) / (n_epochs*len_dataloader)
+				print(self.p)
+				self.lambda_ = 2. / (1. + np.exp(-10 * self.p)) - 1
+				#self.lambda_adap = 1. / (1. + 10 * p) ** 0.75 
 
 				try:
 					batch_source = source_iter.next()
@@ -59,7 +62,8 @@ class TrainLoop(object):
 					target_iter = iter(self.target_loader)
 					batch_source = source_iter.next()
 					batch_target = target_iter.next()
-
+			
+				self.scheduler.step()
 				cur_loss += self.train_step(batch_source, batch_target)
 				i += 1
 
@@ -148,5 +152,8 @@ class TrainLoop(object):
 			norm += params.grad.norm(2).item()
 		print('Sum of grads norms: {}'.format(norm))
 
+	def update_lr(self, step):
+		print(1. / ((1. + 10 * self.p) ** 0.75))
+		return 1. / ((1. + 10 * self.p) ** 0.75)
 
 
