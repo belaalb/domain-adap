@@ -12,7 +12,7 @@ from test import test
 
 class TrainLoop(object):
 
-	def __init__(self, model, optimizer, source_loader, target_loader, checkpoint_path=None, checkpoint_epoch=None, cuda=True, target_name='mnist_m'):
+	def __init__(self, model, optimizer, source_loader, target_loader, checkpoint_path=None, checkpoint_epoch=None, cuda=True, source_name='mnist', target_name='mnist_m'):
 		if checkpoint_path is None:
 			# Save to current directory
 			self.checkpoint_path = os.getcwd()
@@ -33,6 +33,7 @@ class TrainLoop(object):
 		self.target_loader = target_loader
 		self.history = {'loss': []}
 		self.cur_epoch = 0
+		self.source_name = source_name
 		self.target_name = target_name
 
 	def train(self, n_epochs=1, save_every=1):
@@ -50,7 +51,7 @@ class TrainLoop(object):
 			cur_loss = 0
 			while i < len_dataloader:
 				self.p = float(i + self.cur_epoch * len_dataloader) / (n_epochs*len_dataloader)
-				print(self.p)
+				#print(self.p)
 				self.lambda_ = 2. / (1. + np.exp(-10 * self.p)) - 1
 				#self.lambda_adap = 1. / (1. + 10 * p) ** 0.75 
 
@@ -64,6 +65,10 @@ class TrainLoop(object):
 					batch_target = target_iter.next()
 			
 				self.scheduler.step()
+
+				#for param_group in self.optimizer.param_groups:
+				#	print(param_group['lr'])
+
 				cur_loss += self.train_step(batch_source, batch_target)
 				i += 1
 
@@ -75,7 +80,9 @@ class TrainLoop(object):
 			print('Current loss: {}.'.format(cur_loss/i))
 
 			if self.cur_epoch % save_every == 0:
+				test(self.source_name, self.cur_epoch, self.checkpoint_path, self.cuda_mode)
 				test(self.target_name, self.cur_epoch, self.checkpoint_path, self.cuda_mode)
+
 
 			self.cur_epoch += 1
 
@@ -99,17 +106,23 @@ class TrainLoop(object):
 			source_labels = source_labels.cuda() 
 
 		class_out, domain_out = self.model.forward(x_source, self.lambda_)		
-		loss_class = torch.nn.NLLLoss()(class_out, y_source)
-		loss_source = torch.nn.NLLLoss()(domain_out, source_labels)
+		loss_class = torch.nn.CrossEntropyLoss()(class_out, y_source)
+		loss_source = torch.nn.CrossEntropyLoss()(domain_out, source_labels)
 		
 		if self.cuda_mode:
 			x_target = x_target.cuda()
 			target_labels = target_labels.cuda()
 
 		_, domain_out = self.model.forward(x_target, self.lambda_)		
-		loss_target = torch.nn.NLLLoss()(domain_out, target_labels)
+		loss_target = torch.nn.CrossEntropyLoss()(domain_out, target_labels)
+
+		#print(loss_class.item())
+		#print(loss_target.item())
+		#print(loss_source.item())
 
 		loss = loss_class + loss_source + loss_target 
+
+		self.optimizer.zero_grad()
 
 		loss.backward()
 		self.optimizer.step()
@@ -153,7 +166,6 @@ class TrainLoop(object):
 		print('Sum of grads norms: {}'.format(norm))
 
 	def update_lr(self, step):
-		print(1. / ((1. + 10 * self.p) ** 0.75))
 		return 1. / ((1. + 10 * self.p) ** 0.75)
 
 
