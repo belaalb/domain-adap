@@ -15,8 +15,6 @@ def test(dataset_name, epoch, checkpoint_path, cuda):
 	image_size = 28
 	alpha = 0
 
-	"""load data"""
-
 	if dataset_name == 'mnist_m':
 		test_list = os.path.join(image_root, 'mnist_m_test_labels.txt')
 		img_transform = transforms.Compose([transforms.Resize(image_size), transforms.ToTensor(), transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
@@ -32,6 +30,7 @@ def test(dataset_name, epoch, checkpoint_path, cuda):
 	ckpt = torch.load(os.path.join(checkpoint_path, 'cp_{}ep'.format(epoch) + '.pt'))
 	model.load_state_dict(ckpt['model_state'])
 	model = model.eval()
+	
 	if cuda:
 	  model = model.cuda()
 
@@ -61,4 +60,4 @@ def test(dataset_name, epoch, checkpoint_path, cuda):
 
 	accu = n_correct.item() * 1.0 / n_total
 
-	print('Epoch:{}, accuracy of the {} dataset: {}.'.format(epoch+1, dataset_name, accu))
+	print('Epoch:{}, accuracy on {}: {}.'.format(epoch+1, dataset_name, accu))
